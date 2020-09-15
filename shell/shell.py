@@ -18,7 +18,8 @@ def main():
             try:
                 os.chdir(cd_change)
             except FileNotFoundError:
-                os.write(2, ("cd: no such file or direcory\n").encode())
+                pass
+            continue
         else:
             execute(command)
 
@@ -29,10 +30,10 @@ def execute(command):
     rc = os.fork()
     args = command.split()
     if rc < 0:
-        os.write(2, ("fork failed, returning %d\n" % rc).encode())
+        os.write(2, ("Fork failed, returning %d\n" % rc).encode())
         sys.exit(1)
     elif rc == 0:      #child
-        os.write(1, ("This is a child! Child's pid=%d Parent's pid=%d\n" % (os.getpid(),pid)).encode())
+        os.write(1, ("Child: Child's pid=%d Parent's pid=%d\n" % (os.getpid(),pid)).encode())
         
         if '>' in command:
             redirect = command.split('> ')
@@ -63,11 +64,6 @@ def execute(command):
         os.write(1, ("Parent: My pid=%d.  Child's pid=%d\n" %(pid, rc)).encode())
         wait = os.wait()
         os.write(1, ("Parent: Child %d terminated with exit code %d\n" %wait).encode())
-        
-    
-    
-def redirect(command):
-    print("working on it...")
     
     
 if '__main__' == __name__:
