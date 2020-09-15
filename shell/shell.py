@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import os, sys, re
 
 #Taking in input
@@ -31,10 +33,21 @@ def execute(command):
         sys.exit(1)
     elif rc == 0:      #child
         os.write(1, ("This is a child! Child's pid=%d Parent's pid=%d\n" % (os.getpid(),pid)).encode())
+        
         if '>' in command:
-            redirect('>', command)
+            redirect = command.split('> ')
+            print(redirect[1])
+            os.close(1)
+            os.open(redirect[1], os.O_CREAT | os.O_WRONLY);
+            os.set_inheritable(1, True)
+            
         elif '<' in command:
-            redirect('<', command)
+            redirect = command.split('< ')
+            print(redirect[1])
+            os.close(0)
+            os.open(redirect[1], os.O_RONLY)
+            os.set_inheritable(0, True)
+            
         else:
             for dir in re.split(":", os.environ['PATH']): #try each directory in the path
                 program = "%s/%s" % (dir, args[0])
