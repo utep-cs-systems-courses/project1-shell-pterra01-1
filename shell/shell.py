@@ -105,7 +105,3 @@ def execute(command):
         wait = os.wait()
         os.write(1, ("Parent: Child %d terminated with exit code %d\n" %wait).encode())
     
-    
-if '__main__' == __name__:
-    main() 
-       
