@@ -9,6 +9,12 @@ def main():
             os.write(1, (os.environ['PS1']).encode())
 
         command = input("$ ")
+        try:
+            command = os.read(0, 100)
+        except EOFError:
+            sys.exit(1)
+        except ValueError:
+            sys.exit(1)
             
         if command == "exit":
             sys.exit(1)
@@ -49,10 +55,13 @@ def execute(command):
     os.write(1, ("About to fork (pid:%d)\n" % pid).encode())
     
     rc = os.fork()
-    args = command.split()
+    args = command.copy()
     if rc < 0:
         os.write(2, ("Fork failed, returning %d\n" % rc).encode())
         sys.exit(1)
+        
+    if '&' in args:
+        args.remove('&')
    
     elif rc == 0:      #child
         os.write(1, ("Child: Child's pid=%d Parent's pid=%d\n" % (os.getpid(),pid)).encode())
@@ -68,6 +77,13 @@ def execute(command):
             sys.stdin = open(command[1].strip(), 'r')
             os.set_inheritable(0, True)
             path(command[0].split())
+            
+        elif '/' in args[0]:
+            prog = args[0]
+            try:
+                os.execve(prog, args, os.environ)
+            except FileNotFoundError:
+                os.write(1,("File not found at %s\n" % prog).encode())
         
         elif '|' in command: # piping
             command, command2 = command.split('|')
@@ -104,4 +120,3 @@ def execute(command):
         os.write(1, ("Parent: My pid=%d.  Child's pid=%d\n" %(pid, rc)).encode())
         wait = os.wait()
         os.write(1, ("Parent: Child %d terminated with exit code %d\n" %wait).encode())
-    
